@@ -1,0 +1,31 @@
+---
+title: 'Portafolio: Resultados'
+author: "Iker Sánchez Palalcios"
+output: html_document
+---
+
+El presente documento pretende respaldar y justificar las motivaciones y resultados exhibidos en la presentación adjunta.
+
+Partiendo por la elección de activos dentro del portafolio planteado, cada activo cuenta con una razón inicial en torno a su elección. Se enlistan a continuación:
+
+1. Grupo Bimbo (BIMBOA.MX) - Sector Consumo: Bimbo es una empresa líder en la industria de alimentos y bebidas, con una presencia sólida en México y otros mercados internacionales. Su enfoque en productos de consumo básico los hace resistentes a fluctuaciones económicas significativas.
+
+2. Grupo Elektra (ELEKTRA.MX) - Sector Consumo: Elektra es una empresa diversificada con operaciones en venta al detalle, servicios financieros y productos electrónicos. Su presencia omnicanal y la diversificación de sus ingresos pueden proporcionar estabilidad al portafolio.
+
+3. Grupo Financiero Banorte (GFNORTEO.MX) - Sector Financiero: Banorte es uno de los principales grupos financieros en México, con una amplia gama de servicios bancarios y financieros. La inclusión de una institución financiera sólida puede aportar estabilidad y oportunidades de crecimiento.
+
+4. Grupo Aeroportuario del Pacífico (GAPB.MX) - Sector Transporte y Logística: GAP administra aeropuertos en México y Jamaica, ofreciendo servicios a una amplia gama de pasajeros y carga. La exposición al sector de transporte y logística diversifica el portafolio.
+
+5. Grupo Aeroportuario del Centro Norte (OMAB.MX) - Sector Transporte y Logística: OMA es otro jugador importante en el sector aeroportuario mexicano, con una red de aeropuertos estratégicamente ubicados. La inclusión de múltiples aeropuertos en el portafolio ofrece exposición al tráfico aéreo y turismo.
+
+6. Grupo Aeroportuario del Sureste (ASURB.MX) - Sector Transporte y Logística: ASUR complementa la exposición al sector aeroportuario mexicano, con operaciones en aeropuertos clave en el sureste de México. La diversificación geográfica en el sector de transporte y logística es beneficiosa.
+
+7. Grupo Televisa (TLEVISACPO.MX) - Sector Medios de Comunicación: Televisa es una empresa líder en medios de comunicación y entretenimiento en México, con una amplia cartera de canales de televisión, servicios de cable y contenido digital. La inclusión de una empresa de medios puede proporcionar exposición a la industria de la comunicación.
+
+8. Grupo Alfa (ALFAA.MX) - Sector Industria: Alfa es un conglomerado industrial diversificado con actividades en alimentos, autopartes, petroquímica y más. Su diversificación de negocios y presencia internacional pueden agregar resiliencia al portafolio.
+
+9. Cemex (CEMEXCPO.MX) - Sector Construcción e Infraestructura: Cemex es una empresa líder en la industria de materiales de construcción y cemento. Su exposición a la construcción e infraestructura puede ser beneficiosa en momentos de crecimiento económico y desarrollo de proyectos.
+
+10. Grupo Carso (GCARSOA1.MX) - Sector Diversificado: Grupo Carso es otro conglomerado diversificado con actividades en construcción, infraestructura, telecomunicaciones, comercio minorista y más. La diversificación de sus negocios puede aportar estabilidad y crecimiento potencial al portafolio.
+
+
