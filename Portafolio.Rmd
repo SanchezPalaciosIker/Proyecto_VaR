@@ -1,0 +1,450 @@
+---
+title: "**JUSTIFICACIÓN DE RESULTADOS: VaR**"
+author: "IKER SÁNCHEZ PALACIOS"
+output: 
+  html_document:
+    toc: true
+    css: styles.css
+---
+
+<style>
+body {
+  text-align: justify;
+  max-width: 3000px; /* Ajusta el ancho máximo según tu preferencia */
+  margin: 0 auto; /* Centra el contenido horizontalmente */
+}
+</style>
+
+
+```{r, include=FALSE}
+options(width = 60)
+local({
+  hook_output <- knitr::knit_hooks$get('output')
+  knitr::knit_hooks$set(output = function(x, options) {
+    if (!is.null(options$max.height)) options$attr.output <- c(
+      options$attr.output,
+      sprintf('style="max-height: %s;"', options$max.height)
+    )
+    hook_output(x, options)
+  })
+}) #Obtenido de https://bookdown.org/yihui/rmarkdown-cookbook/hook-scroll.html
+# Permite crear ventanas desplazables en el output de chunks
+```
+
+
+## **Elección de activos**
+
+<div style="text-align: justify;">
+
+La construcción del portafolio busca generar una diversificación de capital entre diversos sectores clave en la economía mexicana, con la intención de mitigar riesgos y aprovechar oportunidades de crecimiento en diferentes áreas. Se enlistan a continuación los activos considerados y una breve descripción de ellos:
+
+- *Grupo Bimbo (BIMBOA.MX)*: Su relevancia en México y presencia internacional le hacen resistente a adversidades de mercado al tener un enfoque en productos de consumo básico. Pertenece al sector de Productos de Consumo Frecuente de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Elektra (ELEKTRA.MX)*:  Sus diversos canales de venta de productos electrónicos y oferta de servicios financieros permiten una diversifiación de ingresos, proporcionando así una estabilidad al portafolio. Pertenece al sector de Servicios y Bienes de Consumo No Básico de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Financiero Banorte (GFNORTEO.MX)*: Cubriendo una gran variedad de servicios financieros escenciales para la gente permite generar exposición en diferentes segmentos del mercado financiero a través de la oferta de servicios de crédito, de seguro y pensiones. Pertenece al sector de Servicios Financieros de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Aeroportuario del Pacífico (GAPB.MX)*: GAP administra aeropuertos en México y Jamaica, ofreciendo servicios a una amplia gama de pasajeros y carga. Pertenece al sector Industrial, subsector Transportes, de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Aeroportuario del Centro Norte (OMAB.MX)*: Cuenta con una red de aeropuertos estratégicamente ubicados. La inclusión de múltiples aeropuertos en el portafolio ofrece exposición al tráfico aéreo y turismo.
+
+- *Grupo Aeroportuario del Sureste (ASURB.MX)*: Complementa la exposición al sector aeroportuario mexicano, con operaciones en aeropuertos clave en el sureste de México, generando una diversificación geográfica en el sector de transporte y logística.
+
+- *Grupo Televisa (TLEVISACPO.MX)*: Líder en medios de comunicación y entretenimiento en México, con una amplia cartera de canales de televisión, servicios de cable y contenido digital. Pertenece al sector de Servicios de Telecomunicaciones de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Alfa (ALFAA.MX)*:Alfa es un conglomerado industrial diversificado con actividades en alimentos, autopartes, petroquímica y más. Su diversificación de negocios y presencia internacional pueden agregar resiliencia al portafolio. Pertenece al sector Industrial, subsector Bienes de Equipo, de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Cemex (CEMEXCPO.MX)*: Líder en la industria de materiales de construcción y cemento. Su exposición a la construcción e infraestructura puede ser beneficiosa en momentos de crecimiento económico y desarrollo de proyectos. Pertenece al sector de Materiales de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+- *Grupo Carso (GCARSOA1.MX)*: Otro conglomerado industrial, diversificado con actividades en construcción, infraestructura, telecomunicaciones, comercio minorista y más. La diversificación de sus negocios puede aportar estabilidad y crecimiento potencial al portafolio.Pertenece al sector Industrial, subsector Bienes de Equipo, de acuerdo al portal de la Bolsa Mexicana de Valores.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+#IMPORTANTE: Deberá cambiarse la ruta del script base para poder usar el archivo .rmd
+ruta <- "C:\\Users\\ASUS\\Desktop\\AAR\\3. Riesgo de Mercado\\Proyecto.R"
+source(ruta) #Se usa ruta del script Proyecto.R para cargar los datos de los tickers asociados al portafolio, así como las funciones calcular_rendimientos, VaR_SH, VaR_SM y VaR_AE. Aquí se usan.
+
+```
+
+Los precios de cierre de cada activo utilizados en el análisis ocurrieron entre las fechas *2022-01-01* y *2024-04-01*. 
+
+Se adjuntan los primeros y últimos de cada uno:
+
+```{r echo=FALSE, fig.align='center', fig.height=10, fig.width=15, message=FALSE, warning=FALSE}
+
+#Esto es únicamente un chunk para mostrar algunos precios de cierre de los activos
+library(dplyr)
+library(kableExtra)
+primeras_filas <- format(head(precios), nsmall= 7)
+puntos_suspensivos <- rep("...", ncol(precios)+1)
+ultimas_filas <- format(tail(precios), nsmall = 7)
+show <- rbind(primeras_filas, puntos_suspensivos, ultimas_filas)
+rownames(show)[7] <- '...'
+
+show <- tibble::rownames_to_column(show, var = "FECHA")
+
+
+
+
+
+show %>%
+  kable(format = "html", col.names = colnames(show)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%")%>%
+  column_spec(1, width_min = '2.5cm')
+```
+
+<div style="text-align: justify;">
+
+## **Comportamiento de los activos**
+La evolución del precio de cada acción durante el período de análisis puede ser fácilmente visualizada mediante las siguientes gráficas. Con ello puede verificarse que los activos cuyo precio es más alto en el mercado son los instrumentos de Elektra, Grupo Aeroportuario del Sureste y Grupo Aeroportuario del Pacífico. Por otro lado, si bien Cemex no tiene una presencia tan fuerte en el mercado función del precio de sus acciones, tiene un evidente comportamiento a la alza. 
+
+```{r echo=FALSE, fig.align='center', fig.height=20, fig.width=20, message=FALSE, warning=FALSE}
+
+col1 <- "#ff0000"
+col2 <- "#000000"
+paleta <- colorRampPalette(c(col1, col2))(length(close)) #Paleta degradada
+
+par(mfrow = c(5, 2))
+
+plot(close[[1]], col = paleta[1], type = "l", main = colnames(precios)[1])
+plot(close[[2]], col = paleta[2], type = "l", main = colnames(precios)[2]) 
+plot(close[[3]], col = paleta[3], type = "l", main = colnames(precios)[3]) 
+plot(close[[4]], col = paleta[4], type = "l", main = colnames(precios)[4])
+plot(close[[5]], col = paleta[5], type = "l", main = colnames(precios)[5])
+plot(close[[6]], col = paleta[6], type = "l", main = colnames(precios)[6])
+plot(close[[7]], col = paleta[7], type = "l", main = colnames(precios)[7])
+plot(close[[8]], col = paleta[8], type = "l", main = colnames(precios)[8])
+plot(close[[9]], col = paleta[9], type = "l", main = colnames(precios)[9])
+plot(close[[10]], col = paleta[10], type = "l", main = colnames(precios)[10])
+
+
+
+```
+
+<div style="text-align: justify;">
+## **Rendimientos individuales de los activos**
+
+Se desea verificar la presencia de ruido blanco en el comportamiento de cada activo para proceder con el análisis de valores extremos. Es decir, deseamos identificar una varianza constante en los rendimientos de cada uno y ninguna tendencia significativa. En otras palabras, deseamos verificar que sea posible encerrar en dos bandas constantes los rendimientos de cada activo. A continuación, se verifican gráficamente estos supuestos iniciales en algunos rendimientos con algunas exepciones que, por el momento, consideraremos descartables:
+
+```{r echo=FALSE, fig.height=25, fig.width=20, message=FALSE, warning=FALSE}
+#Las variables precios y tickers fueron definidas en el script base
+library(grDevices)#Degradar colores
+
+col1 <- "#ff0000"
+col2 <- "#000000"
+paleta <- colorRampPalette(c(col1, col2))(ncol(precios)) #Paleta degradada
+
+rends <- calcular_rendimientos(precios)
+par(mfrow = c(5, 2))
+for (i in 1:length(rends)) {
+  base::plot(rends[[i]], type = 'l', ylab = 'Rendimientos', xlab = 'Observaciones', main = names(rends)[i], col = paleta[i])
+
+}
+
+
+```
+
+
+
+<div style="text-align: justify;">
+## **Metodologías no paramétricas individuales**
+
+En este apartado se exhibirán los resultados obtenidos en el cálculo  del Valor en Riesgo de cada activo por metodologías no paramétricas. No se aplicarán las metodologías al portafolio, no obstante, el cálculo del Valor en Riesgo asociado a éste únicamente requeriría definirlo como el precentil p, siendo p el nivel de confianza deseado, de la variable $PL = \sum_{i=1}^nPL_i$, donde $PL_k$ es la variable de pérdidas y ganancias asociada al activo $k$ en un portafolio de $n$ activos. Puede consultarse la construcción de cada función en el script base *Proyecto.R*.
+
+Cada una de las metodologías considera el último precio de cada activo como monto total de exposición al riesgo. Basta multiplicar el resultado de cada resultado por alguna cantidad específica de activos en el portafolio para obtener el VaR asociado a ese monto.
+
+### **VaR por Simulación Histórica**
+Utilizando la función VaR_SH se obtiene el siguiente listado de resultados:
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+#Mostramos los VaR_SH según el horizonte y confianza solicitados
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste0('Horizonte de tiempo: ', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                  round(VaR_SH(k, i, precios[[accion]]), 4)))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+```
+
+### **VaR por Simulación Montecarlo**
+
+Para contemplar esta metología es necesario un supuesto de normalidad sobre los rendimientos del activo que se está considerando. A continuación, se hará evidente que, inevitablemente, se romperá el supuesto en más de una ocasión.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.height=10, fig.width=20}
+
+col1 <- "#2180DE"
+col2 <- "#09223B"
+paleta <- colorRampPalette(c(col1, col2))(ncol(precios)) #Paleta degradada
+
+rends <- calcular_rendimientos(precios)
+par(mfrow = c(2, 5))
+for (i in 1:length(rends)) {
+  hist(rends[[i]], ylab = 'Frecuencia', xlab = 'Rendimientos', main = names(rends)[i], col = paleta[i])
+
+}
+
+```
+
+
+Utilizando la función VaR_SM se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+# #Mostramos los VaR_SM según el horizonte y confianza solicitados
+# print('Valor en Riesgo por Simulación Montecarlo')
+for (accion in names(precios)){
+  print(paste("------- ", accion, " -------"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste0('Horizonte de tiempo: ',i))
+    for (k in c(.95, .975, .99)){
+      for (j in c(10,100,1000,5000,10000, 20000)){
+      print(paste0('VaR',k*100,'%', ' = ',
+                  round(VaR_SM(alpha = k, t = i, precios[[accion]], sim = j), 3), ' con ', j, ' sim '))
+      }
+    }
+  }
+  cat('\n\n')
+} #La ejecución tardará
+
+```
+
+
+
+
+
+### **VaR por Alisado Exponencial**
+Utilizando la función VaR_AE se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                  round(VaR_AE(alpha= .95, beta=0.05, i, k, precios[[accion]]), 4)))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+```
+
+
+<div style="text-align: justify;">
+## **Metodologías paramétricas individuales**
+Al igual que el apartado de metodologías no paramétricas, cada una de las metodologías paramétricas considera el último precio de cada activo como monto total de exposición al riesgo. Basta multiplicar el resultado por alguna cantidad específica de activos de tipo k en el portafolio para obtener el VaR asociado a ese monto. Del mismo modo,  en esta sección, se calculará el valor en riesgo individual de cada activo.
+
+
+### **VaR Paramétrico**
+Utilizando la función VaR_PAR se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                  round(VaR_PAR(k,i,precios[[accion]]),4) ))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+
+```
+
+### **VaR Delta Normal**
+Utilizando la función VaR_DNORM se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                  round(VaR_DNORM(p = k, t = i, activo = precios[[accion]]), 4) ) )
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+
+```
+
+
+
+### **VaR de Cornish Fisher**
+Utilizando la función VaR_CF se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                   round(VaR_CF(p = k,t = i, activo = precios[[accion]]), 4)))
+                  
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+
+```
+
+
+### **VaR por metodología EWMA**
+Utilizando la función VaR_EWMA para la metodología Exponentially Weighted Moving Average, se obtiene el siguiente listado de resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+for (accion in names(precios)){
+  print(paste("----- ", accion, " -----"))
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      print(paste0('VaR',k*100, '% = ',
+                  round(VaR_EWMA(k, i, precios[[accion]]), 4)))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+}
+
+```
+
+
+
+
+<div style="text-align: justify;">
+
+## **Metodologías paramétricas en el portafolio**
+
+En esta sección se exhibirán los resultados correspondientes a las metodologías paramétricas del cálculo del VaR asociado al portafolio con una participación de una adquisición por activo, la cual puede ser generalizada a más activos en el parámetro de número de acciones, únicamente verificando su correspondencia con el orden en que fueron definidos los tickers en la descarga de datos de Yahoo Finance. Por otro lado, las metodologías de mínima varianza y de punto de tangencia descartarán mostrarán la participación óptima de cada activo en la contstrucción del portafolio para cada caso, así como el Valor en Riesgo en función del monto calculado a partir del parámetro inicial del número de acciones.
+
+En el proceso de optimización para hallar la combinación de participaciones en el portafolio de cada activo, tanto en la metodología de mínima varianza, como la de punto de tangencia, se utilizó la función *solnp()* de la paquetería *Rsolnp*, la cual, en términos generales, utiliza el método de optimización Sequential Quadratic Programming (SQP) para resolver problemas de optimización no lineales con restricciones.
+
+### **VaR Paramétrico Diversificado y No Diversificado**
+
+Utilizando la función VaR_P de tipo 1 con un activo de cada tipo se obtienen los siguientes resultados:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='145px'}
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      VaR_object <- VaRP(precios, num_acc = rep(1,ncol(precios)),p = k,t = i,type = 1)
+      print(as.data.frame(VaR_object))
+    }
+    print('---------------------------------')
+  }
+  cat('\n\n ')
+```
+
+
+
+
+### **VaR Paramétrico de Mínima Varianza**
+
+Se utilizó la función VaR_P de tipo 2 con un activo de cada tipo.
+
+Primeramente, la proporción de activos que permite una mínima varianza en los rendimientos en cualesquiera horizonte de tiempo y nivel de confianza genera el siguiente listado de resultados para el Valor en Riesgo del portafolio:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      VaR_object <- VaRP(precios, num_acc = rep(1,ncol(precios)),p = k,t = i,type = 2)
+      print(paste0('VaR',k*100, '% = ', round(VaR_object[[2]], 4)))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+  
+
+```
+
+
+Donde, las proporciones de cada activo que minimizan la varianza de los rendimientos del portafolio se definen por el siguiente vector:
+
+```{r echo=FALSE, message=FALSE,fig.height=1, fig.width=15, warning=FALSE}
+library(kableExtra)
+part0 <- VaRP(precios, num_acc = rep(1,ncol(precios)),p = .95,t = 1,type = 2)[[1]]
+part0 <- as.data.frame(part0)
+part0 <- t(part0)
+rownames(part0) <- NULL
+
+
+part0 %>%
+  kable(format = "html", col.names = colnames(part0)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%")%>%
+  column_spec(1, width_min = '3cm')
+```
+
+
+
+
+
+### **VaR Paramétrico del Portafolio en Combinación Óptima**
+
+Se utilizó la función VaR_P de tipo 3 con un activo de cada tipo.
+
+En primer lugar, la proporción de activos que permite un coeficiente de variación mínimo en los rendimientos en cualesquiera horizonte de tiempo y nivel de confianza genera el siguiente listado de resultados para el Valor en Riesgo del portafolio:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, max.height='400px'}
+
+  for (i in c(1, 30, 180 , 360)) {
+    print(paste('Horizonte de tiempo:', i))
+    for (k in c(.95, .975, .99)){
+      VaR_object <- VaRP(precios, num_acc = rep(1,ncol(precios)),p = k,t = i,type = 3)
+      print(paste0('VaR',k*100, '% = ', round(VaR_object[[2]], 4)))
+    }
+    print('--------------------')
+  }
+  cat('\n\n ')
+
+```
+
+
+
+Donde, las proporciones que permiten el punto de tangencia en los rendimientos, se definen como:
+
+```{r echo=FALSE, message=FALSE,fig.height=1, fig.width=15, warning=FALSE}
+library(kableExtra)
+part0 <- VaRP(precios, num_acc = rep(1,ncol(precios)),p = .95,t = 1,type = 3)[[1]]
+part0 <- as.data.frame(part0)
+part0 <- t(part0)
+rownames(part0) <- NULL
+
+
+part0 %>%
+  kable(format = "html", col.names = colnames(part0)) %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%")%>%
+  column_spec(1, width_min = '3cm')
+```
+
+
+
